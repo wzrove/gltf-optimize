@@ -12,12 +12,13 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const program = new Command();
 const resultsFiles = resolve(homedir() + '/gltf-optimize-result')
-console.log(homedir())
 program
   .name('gltf-optimizer')
   .description('gltf  optimize with meshoptimizer and caesiumclt')
   .version('0.0.1');
-
+ 
+const gltfpackPath = __dirname + '/meshoptimizer/gltfpack'
+const caesiumcltPath = __dirname + '/caesium-clt/target/release/caesiumclt'
 
 program
   .configureOutput({
@@ -53,7 +54,7 @@ program
             fse.writeFileSync(catchName + relativePath, resource);
           }
         }
-        await promisify(exec)(`${__dirname}/tools/caesiumclt -q=80  -o=${catchName} ${catchName}`)
+        await promisify(exec)(`${caesiumcltPath} -q=80  -o=${catchName} ${catchName}`)
         const targetFilePath = resultsFiles + '/' + baseName + '.glb';
         if (draco) {
           const files = await fse.readJson(catchFullPath)
@@ -65,7 +66,7 @@ program
           })
           await fse.writeFile(targetFilePath, file.glb);
         } else {
-          await promisify(exec)(`${__dirname}/tools/gltfpack -i ${catchFullPath} -o ${targetFilePath} -cc -tu C -tj 4 -vpf `)
+          await promisify(exec)(`${gltfpackPath} -i ${catchFullPath} -o ${targetFilePath} -cc -tu C -tj 4 -vpf `)
         }
         const size = await (await fse.stat(targetFilePath)).size
         return size
