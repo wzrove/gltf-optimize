@@ -1,9 +1,0 @@
-{
-  "files.associations": {
-    "*.css": "tailwindcss",
-    "*.html": "tailwindcss"
-  },
-  "editor.quickSuggestions": {
-    "strings": true
-  }
-}
