@@ -14,11 +14,15 @@
       "esnext",
       "dom"
     ],
-    "types": [
-      "vite/client",
-    ],
+    "types":
+      [
+        "vite/client","web-bluetooth"
+      ],
+
     "paths": {
-      "/@/*": ["src/*"],
+      "/@/*": [
+        "src/*"
+      ],
     }
   },
   "include": [

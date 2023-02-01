@@ -1,3 +1,11 @@
-# standard-vue3-template
 
-This template should help get you started developing with Vue 3 in Vite.
+## 启动
+
+```
+前端
+pnpm run dev
+
+后端
+
+pnpm run server
+```

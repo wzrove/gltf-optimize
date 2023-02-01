@@ -11,7 +11,7 @@ const __dirname = dirname(__filename);
 
 const gltfpackPath = __dirname + '/tools/gltfpack';
 const caesiumcltPath = __dirname + '/tools/caesiumclt';
-const dracoPath = __dirname + '/tools/draco_transcoder-1.5.3';
+const dracoPath = __dirname + '/tools/draco_transcoder-1.5.5';
 const resultsFiles = __dirname + '/dist';
 
 /**
@@ -30,24 +30,24 @@ export const compression = async ({
   pictureOption = JSON.parse(pictureOption);
   const dataList = [];
   // await fse.mkdirp(resultsFiles);
-  await checkFileExtension(input, async ({ extName, fullName, baseName, fullPath }) => {
+  await checkFileExtension(input, async ({ extName, baseName, fullPath }) => {
     const startTime = hrtime();
     try {
       let gltfData;
       const options = {
-        separateTextures: true,
-        resourceDirectory: dirname(fullPath),
+        separate: true,
+        resourceDirectory: dirname(fullPath) + '/' + baseName,
       };
+      const catchName = `${__dirname}/catch/${baseName}/`;
+      const catchFullPath = catchName + '/' + baseName + '.gltf';
+      await fse.mkdirp(catchName);
       if (extName == '.gltf') {
         const gltf = await fse.readJSON(fullPath);
         gltfData = await gltfPipeline.processGltf(gltf, options);
       } else {
-        const gltf = await fse.readFile(fullPath);
-        gltfData = await gltfPipeline.processGlb(gltf, options);
+        const glb = await fse.readFile(fullPath);
+        gltfData = await gltfPipeline.glbToGltf(glb, options);
       }
-      const catchName = `${__dirname}/catch/${baseName}/`;
-      const catchFullPath = catchName + fullName;
-      await fse.mkdirp(catchName);
       await fse.writeJSON(catchName + baseName + '.gltf', gltfData.gltf);
       const separateResources = gltfData.separateResources;
       for (const relativePath in separateResources) {
@@ -78,21 +78,22 @@ export const compression = async ({
       }
       const size = await (await fse.stat(targetFilePath)).size;
       const endTime = hrtime(startTime);
+      console.log(endTime);
       const dataInfo = {
         fileName: baseName,
         filePath: '/gltf/' + baseName,
         rawFileName: rawFileName,
-        time: endTime[0] + (endTime[1] / 10000000000).toFixed(2),
+        time: (endTime[0] + endTime[1] / 1000000000).toFixed(2),
         size: size,
       };
       dataList.push(dataInfo);
-      await remove(catchName);
+      // await remove(catchName);
       await remove(fullPath);
       return {
         dataInfo,
       };
     } catch (error) {
-      // console.error(error);
+      console.error(error);
       return Promise.reject(error);
     }
   });

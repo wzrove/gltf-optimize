@@ -2,6 +2,7 @@ import Koa from 'koa';
 import Router from 'koa-router';
 import { koaBody } from 'koa-body';
 import staticServe from 'koa-static';
+import cors from 'koa2-cors';
 // import { WebSocketServer } from 'ws';
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -9,6 +10,7 @@ import { compression } from './index.mjs';
 
 const app = new Koa();
 const router = new Router();
+app.use(cors());
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const catchPath = __dirname + '/catch';
@@ -61,7 +63,7 @@ router.post(
           data,
         };
       } catch (error) {
-        console.log(error.message);
+        console.error(error.message);
         ctx.status = 400;
         ctx.body = { msg: error.message };
       }

@@ -19,6 +19,14 @@ export default defineConfig({
   },
   build: {
     outDir: './server/dist',
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          123: ['vue'],
+          333: ['three'],
+        },
+      },
+    },
   },
   server: {
     proxy: {

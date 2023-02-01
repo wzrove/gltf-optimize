@@ -1,9 +1,9 @@
 <template>
   <section
-    class="flex h-screen w-screen justify-around gap-x-5 overflow-hidden bg-slate-50 px-10 py-5 dark:bg-black"
+    class="flex h-screen w-screen justify-around gap-x-5 overflow-hidden bg-base-100 px-10 py-5"
   >
     <div
-      class="card card-compact max-h-screen w-3/5 bg-base-100 px-10 py-5 transition duration-500 hover:shadow-xl hover:duration-200"
+      class="card card-compact max-h-screen w-3/5 bg-base-200 px-10 py-5 transition duration-500 hover:shadow-xl hover:duration-200"
     >
       <div class="flex items-center justify-between">
         <p class="text-xl font-extrabold">贴图压缩</p>
@@ -146,7 +146,9 @@
     </div>
 
     <div class="container card flex-col gap-y-5">
-      <section class="card flex items-center justify-center bg-base-100 p-2">
+      <section
+        class="card flex items-center justify-center gap-y-2 bg-base-200 p-2 transition duration-500 hover:shadow-xl hover:duration-200"
+      >
         <div class="form-control">
           <label class="label"> 选择上传的文件（glb,gltf） </label>
           <input
@@ -164,19 +166,16 @@
             <div class="stat-title">Raw Size</div>
             <div class="stat-value">{{ getfilesize(filesRef?.size) || 0 }}</div>
             <div class="stat-actions">
-              <button
-                class="btn-ghost btn"
-                :class="{ loading: buttonState.isLoading }"
-                @click="uploadFile"
-                >{{ buttonState.text }}</button
-              >
+              <button class="btn" :class="{ loading: buttonState.isLoading }" @click="uploadFile">{{
+                buttonState.text
+              }}</button>
             </div>
           </div>
 
           <div class="stat">
             <div class="stat-title">Current Size</div>
             <div class="stat-value">{{ getfilesize(diffFileInfo?.CurSize) || 0 }}</div>
-            <div class="stat-actions">
+            <div class="stat-actionsg flex items-center justify-around gap-x-2">
               <input
                 type="text"
                 placeholder="文件名显示在这儿，可修改"
@@ -192,19 +191,25 @@
               >
             </div>
           </div>
+          <div class="stat">
+            <div class="stat-title">Use Time</div>
+            <div class="stat-value">{{ diffFileInfo.time }}S</div>
+          </div>
         </div>
       </section>
-      <!-- <div class="mockup-window h-full w-full border bg-base-200">
-        <div class="flex h-full justify-center bg-base-100 px-4 py-16">show gltf!</div>
-      </div> -->
+      <CompressedGltf
+        class="card relative flex flex-grow overflow-hidden bg-base-200 transition duration-500 hover:shadow-xl hover:duration-200"
+        :left-file="filesRef"
+        :right-file="diffFileInfo.fileName ? curFilePath : ''"
+      />
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
-  import { reactive, ref, toRaw } from 'vue';
+  import { computed, reactive, ref, toRaw } from 'vue';
   import Message from 'vue-m-message';
-
+  import CompressedGltf from './CompressedGltf.vue';
   interface gltfpackOption {
     target: string;
     description:
@@ -218,12 +223,20 @@
     setp?: number;
     max?: number;
   }
-  const pictureOption = reactive({
+  const pictureOption = ref({
     isOpen: true,
     quality: 80,
     lossless: false,
   });
   const filesRef = ref<File>();
+
+  const curFilePath = computed(
+    () =>
+      `${import.meta.env.DEV ? 'http://localhost:3000' : window.location.origin}${
+        diffFileInfo.filePath
+      }`,
+  );
+
   const fileChange = (e: Event) => {
     const curEvent = e.currentTarget as HTMLInputElement;
     if (curEvent.files) filesRef.value = curEvent.files[0];
@@ -232,7 +245,7 @@
     diffFileInfo.filePath = '';
   };
   const modeloptionType = ref<'draco' | 'gltfpack'>('draco');
-  const modelOption = reactive<{
+  const modelOption = ref<{
     dracoOption: Array<gltfpackOption>;
     gltfpackOption: {
       [key: string]: Array<gltfpackOption>;
@@ -487,11 +500,11 @@
       }
       let cliOptions;
       if (modeloptionType.value == 'draco') {
-        cliOptions = getCliOPtion(modelOption.dracoOption, 'draco');
+        cliOptions = getCliOPtion(modelOption.value.dracoOption, 'draco');
       } else {
         let options: Array<gltfpackOption> = [];
-        for (const key in modelOption.gltfpackOption) {
-          const curOption = toRaw(modelOption.gltfpackOption[key]);
+        for (const key in modelOption.value.gltfpackOption) {
+          const curOption = toRaw(modelOption.value.gltfpackOption[key]);
           console.log(curOption);
           options.push(...curOption);
         }
@@ -499,7 +512,7 @@
       }
       formData.append('cliOptions', JSON.stringify(cliOptions));
       formData.append('modeloptionType', JSON.stringify(modeloptionType.value));
-      formData.append('pictureOption', JSON.stringify(pictureOption));
+      formData.append('pictureOption', JSON.stringify(pictureOption.value));
 
       const res = await fetch('/uploadFile', {
         method: 'post',
@@ -514,10 +527,13 @@
         diffFileInfo.CurSize = data[0].size;
         diffFileInfo.filePath = data[0].filePath + '.glb';
         diffFileInfo.fileName = data[0].fileName;
+        diffFileInfo.time = Number(data[0].time);
       }
       buttonState.isLoading = false;
     } catch (error) {
-      Message.error(error as string);
+      Message.error(error as string, {
+        closable: true,
+      });
       buttonState.isLoading = false;
     }
   };
@@ -532,6 +548,7 @@
     CurSize: 0,
     fileName: '',
     filePath: '',
+    time: 0,
   });
   // let ws: WebSocket;
 
@@ -574,9 +591,7 @@
     return (size / Math.pow(num, 4)).toFixed(2) + 'T'; //T
   }
   const fileDownload = () => {
-    const url = `${import.meta.env.DEV ? 'http://localhost:3000' : window.location.origin}${
-      diffFileInfo.filePath
-    }`;
+    const url = curFilePath.value;
     const link = document.createElement('a');
     link.style.display = 'none';
     link.href = url;
