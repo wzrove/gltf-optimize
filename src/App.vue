@@ -183,7 +183,7 @@
                 v-model="diffFileInfo.fileName"
               />
               <button
-                class="btn-sm btn"
+                class="btn btn-sm"
                 @click="fileDownload"
                 :disabled="diffFileInfo.filePath ? false : true"
               >
@@ -243,6 +243,7 @@
     diffFileInfo.CurSize = 0;
     diffFileInfo.fileName = '';
     diffFileInfo.filePath = '';
+    diffFileInfo.time = 0;
   };
   const modeloptionType = ref<'draco' | 'gltfpack'>('draco');
   const modelOption = ref<{

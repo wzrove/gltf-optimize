@@ -40,7 +40,9 @@
       />
     </div>
 
-    <div class="info-can card bg-base-300 p-3 text-xs">
+    <div
+      class="info-can card bg-base-300 bg-opacity-20 p-3 text-xs transition duration-300 hover:bg-opacity-100 hover:shadow-xl"
+    >
       <div class="info-first">left</div>
       <div>right</div>
 

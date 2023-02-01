@@ -5,6 +5,7 @@ specifiers:
   '@commitlint/config-conventional': ^17.4.2
   '@tailwindcss/typography': ^0.5.9
   '@types/three': ^0.149.0
+  '@types/web-bluetooth': ^0.0.16
   '@types/ws': ^8.5.4
   '@typescript-eslint/eslint-plugin': 5.48.2
   '@typescript-eslint/parser': 5.48.2
@@ -43,6 +44,7 @@ specifiers:
 
 dependencies:
   '@types/three': 0.149.0
+  '@types/web-bluetooth': 0.0.16
   '@types/ws': 8.5.4
   '@vueuse/core': 9.12.0_vue@3.2.45
   fs-extra: 11.1.0
