@@ -1,151 +1,7 @@
 <template>
-  <section
-    class="flex h-screen w-screen justify-around gap-x-5 overflow-hidden bg-base-100 px-10 py-5"
-  >
-    <div
-      class="card card-compact max-h-screen w-3/5 bg-base-200 px-10 py-5 transition duration-500 hover:shadow-xl hover:duration-200"
-    >
-      <div class="flex items-center justify-between">
-        <p class="text-xl font-extrabold">贴图压缩</p>
-        <div class="form-control">
-          <label class="label cursor-pointer gap-1">
-            <span class="label-text">开启</span>
-            <input type="checkbox" v-model="pictureOption.isOpen" class="toggle" />
-          </label>
-        </div>
-      </div>
-
-      <section class="my-5" v-disabled="pictureOption.isOpen">
-        <div class="form-control">
-          <label class="label cursor-pointer">
-            <span class="label-text">无损压缩</span>
-            <input type="checkbox" class="toggle" v-model="pictureOption.lossless" />
-          </label>
-        </div>
-        <div class="form-control">
-          <label class="label py-0">
-            <span class="label-text">图片质量</span>
-            <span class="label-text-alt font-bold"> {{ pictureOption.quality }}</span>
-          </label>
-          <input
-            type="range"
-            min="1"
-            :step="1"
-            :max="100"
-            v-model="pictureOption.quality"
-            class="range"
-            :disabled="pictureOption.lossless"
-          />
-        </div>
-      </section>
-      <div class="divider"></div>
-      <!-- 模型 -->
-      <div class="flex items-center justify-between">
-        <p class="text-xl font-extrabold">模型压缩</p>
-        <div class="flex items-center justify-between">
-          <div class="form-control">
-            <label class="label cursor-pointer gap-1">
-              <span class="label-text">draco</span>
-              <input
-                type="radio"
-                name="radio-10"
-                @change="modeloptionType = 'draco'"
-                class="radio"
-                checked
-              />
-            </label>
-          </div>
-          <div class="form-control">
-            <label class="label cursor-pointer gap-1">
-              <span class="label-text">gltfpack</span>
-              <input
-                type="radio"
-                name="radio-10"
-                @change="modeloptionType = 'gltfpack'"
-                class="radio"
-              />
-            </label>
-          </div>
-        </div>
-      </div>
-      <section v-if="modeloptionType == 'draco'">
-        <div
-          class="form-control my-2 w-full"
-          v-for="list in modelOption.dracoOption"
-          :key="list.type"
-        >
-          <label class="y-0 label">
-            <span class="label-text italic">{{ list.description }}</span>
-            <span class="label-text-alt font-bold"> {{ list.default }}</span>
-          </label>
-          <input
-            type="range"
-            min="0"
-            step="1"
-            :max="list.max"
-            v-model="list.default"
-            :class="list.type"
-          />
-        </div>
-      </section>
-      <section v-else class="overflow-auto pr-2">
-        <section v-for="(value, name) in modelOption.gltfpackOption" :key="name" class="gap-y-1">
-          <p class="font-bold">{{ name }}</p>
-          <div v-for="item in value" :key="item.target">
-            <section class="form-control" v-if="item.type == 'range'">
-              <label class="label">
-                <span class="label-text">{{ item.description }}</span>
-                <span class="label-text-alt font-bold"> {{ item.default }}</span>
-              </label>
-              <input
-                type="range"
-                min="0"
-                :step="item.setp || 1"
-                :max="item?.max"
-                v-model="item.default"
-                class="range"
-              />
-            </section>
-            <section
-              class="form-control"
-              v-else-if="item.type == 'switch' && typeof item.default == 'boolean'"
-            >
-              <label class="label cursor-pointer">
-                <span class="label-text">{{ item.description }} {{ item.type }}</span>
-                <input type="checkbox" class="toggle" v-model="item.default" />
-              </label>
-            </section>
-            <section
-              class="form-control"
-              v-else-if="item.type == 'radio' && Array.isArray(item.description)"
-            >
-              <label
-                class="label cursor-pointer"
-                v-for="riadio in item.description"
-                :key="riadio.value"
-              >
-                <span class="label-text">{{ riadio.label }}</span>
-                <input
-                  :name="riadio.value"
-                  type="radio"
-                  class="radio"
-                  @change="item.default = riadio.value"
-                  :checked="item.default === riadio.value"
-                />
-              </label>
-            </section>
-            <section class="form-control" v-else-if="item.type == 'number'">
-              <label class="label cursor-pointer">
-                {{ item.description }}
-                <input class="input-bordered input input-sm" type="number" v-model="item.default" />
-              </label>
-            </section>
-          </div>
-        </section>
-      </section>
-    </div>
-
-    <div class="container card flex-col gap-y-5">
+  <section class="flex h-screen w-screen gap-x-5 overflow-hidden bg-base-100 px-10 py-5">
+    <ComperssionOption />
+    <div class="container card flex-col gap-y-5 overflow-hidden">
       <section
         class="card flex items-center justify-center gap-y-2 bg-base-200 p-2 transition duration-500 hover:shadow-xl hover:duration-200"
       >
@@ -163,7 +19,7 @@
         </div>
         <div class="stats" v-show="diffFileInfo.isShow">
           <div class="stat">
-            <div class="stat-title">Raw Size</div>
+            <div class="stat-title">原始大小</div>
             <div class="stat-value">{{ getfilesize(filesRef?.size) || 0 }}</div>
             <div class="stat-actions">
               <button class="btn" :class="{ loading: buttonState.isLoading }" @click="uploadFile">{{
@@ -173,7 +29,7 @@
           </div>
 
           <div class="stat">
-            <div class="stat-title">Current Size</div>
+            <div class="stat-title">压缩后大小</div>
             <div class="stat-value">{{ getfilesize(diffFileInfo?.CurSize) || 0 }}</div>
             <div class="stat-actionsg flex items-center justify-around gap-x-2">
               <input
@@ -183,7 +39,7 @@
                 v-model="diffFileInfo.fileName"
               />
               <button
-                class="btn btn-sm"
+                class="btn btn-xs"
                 @click="fileDownload"
                 :disabled="diffFileInfo.filePath ? false : true"
               >
@@ -192,13 +48,12 @@
             </div>
           </div>
           <div class="stat">
-            <div class="stat-title">Use Time</div>
+            <div class="stat-title">压缩用时</div>
             <div class="stat-value">{{ diffFileInfo.time }}S</div>
           </div>
         </div>
       </section>
-      <CompressedGltf
-        class="card relative flex flex-grow overflow-hidden bg-base-200 transition duration-500 hover:shadow-xl hover:duration-200"
+      <DiffCompressedGltf
         :left-file="filesRef"
         :right-file="diffFileInfo.fileName ? curFilePath : ''"
       />
@@ -207,27 +62,12 @@
 </template>
 
 <script setup lang="ts">
-  import { computed, reactive, ref, toRaw } from 'vue';
+  import { computed, reactive, ref } from 'vue';
   import Message from 'vue-m-message';
-  import CompressedGltf from './CompressedGltf.vue';
-  interface gltfpackOption {
-    target: string;
-    description:
-      | string
-      | Array<{
-          label: string;
-          value: string;
-        }>;
-    type: 'radio' | 'range' | 'switch' | 'number';
-    default: number | string | boolean;
-    setp?: number;
-    max?: number;
-  }
-  const pictureOption = ref({
-    isOpen: true,
-    quality: 80,
-    lossless: false,
-  });
+  import DiffCompressedGltf from './DiffCompressedGltf.vue';
+  import ComperssionOption from './ComperssionOption.vue';
+  import { getCompressionOption } from './CompressionOption';
+
   const filesRef = ref<File>();
 
   const curFilePath = computed(
@@ -245,250 +85,6 @@
     diffFileInfo.filePath = '';
     diffFileInfo.time = 0;
   };
-  const modeloptionType = ref<'draco' | 'gltfpack'>('draco');
-  const modelOption = ref<{
-    dracoOption: Array<gltfpackOption>;
-    gltfpackOption: {
-      [key: string]: Array<gltfpackOption>;
-    };
-  }>({
-    // "gltfpack"
-    dracoOption: [
-      {
-        target: 'qp',
-        default: 11,
-        description: 'quantization bits for the position attribute, default=11.',
-        max: 30,
-        type: 'range',
-      },
-      {
-        target: 'qt',
-        default: 10,
-        description: ' quantization bits for the texture coordinate attribute, default=10.',
-        max: 30,
-        type: 'range',
-      },
-      {
-        target: 'qn',
-        default: 8,
-        description: 'quantization bits for the color attribute, default=8.',
-        max: 30,
-        type: 'range',
-      },
-      {
-        target: 'qtg',
-        default: 8,
-        description: ' quantization bits for the tangent attribute, default=8.',
-        max: 30,
-        type: 'range',
-      },
-      {
-        target: 'qw',
-        default: 8,
-        description: 'quantization bits for the weight attribute, default=8.',
-        max: 30,
-        type: 'range',
-      },
-      {
-        target: 'qg',
-        default: 8,
-        description: 'quantization bits for any generic attribute, default=8.',
-        max: 30,
-        type: 'range',
-      },
-    ],
-    gltfpackOption: {
-      Basic: [
-        {
-          target: '',
-          default: 'cc',
-          description: [
-            {
-              label: ' produce compressed gltf/glb files',
-              value: 'c',
-            },
-            {
-              label: 'higher compression ratio',
-              value: 'cc',
-            },
-          ],
-          type: 'radio',
-        },
-      ],
-      Textures: [
-        {
-          target: '',
-          default: 'tc',
-          description: [
-            {
-              label: 'convert all textures to KTX2 with BasisU supercompression',
-              value: 'tc',
-            },
-            {
-              label: 'use UASTC when encoding textures (much higher quality and much larger size)',
-              value: 'tu',
-            },
-            {
-              label: '不使用ktx2 or UASTC 编码纹理',
-              value: '',
-            },
-          ],
-          type: 'radio',
-        },
-        {
-          target: 'tq',
-          default: 8,
-          description: ' set texture encoding quality (default: 8; N should be between 1 and 10',
-          type: 'range',
-          max: 10,
-        },
-        {
-          target: 'ts',
-          default: 1,
-          description:
-            'scale texture dimensions by the ratio R (default: 1; R should be between 0 and 1)',
-          type: 'range',
-          setp: 0.1,
-          max: 1,
-        },
-      ],
-      Simplification: [
-        {
-          target: 'si',
-          default: 1,
-          description:
-            'simplify meshes targeting triangle count ratio R (default: 1; R should be between 0 and 1)',
-          type: 'range',
-          setp: 0.1,
-          max: 1,
-        },
-        {
-          target: 'sa',
-          default: false,
-          description: 'aggressively simplify to the target ratio disregarding quality',
-          type: 'switch',
-        },
-      ],
-      Vertices: [
-        {
-          target: 'vp',
-          default: 14,
-          description:
-            ' use N-bit quantization for positions (default: 14; N should be between 1 and 16)',
-          type: 'range',
-          max: 16,
-        },
-        {
-          target: 'vt',
-          default: 12,
-          description:
-            'use N-bit quantization for texture coordinates (default: 12; N should be between 1 and 16)',
-          type: 'range',
-          max: 16,
-        },
-        {
-          target: 'vn',
-          default: 8,
-          description:
-            'use N-bit quantization for normals and tangents (default: 8; N should be between 1 and 16)',
-          type: 'range',
-          max: 16,
-        },
-        {
-          target: 'vc',
-          default: 8,
-          description:
-            'use N-bit quantization for colors (default: 8; N should be between 1 and 16)',
-          type: 'range',
-          max: 16,
-        },
-        {
-          target: 'vpn',
-          default: false,
-          description: 'use normalized attributes for positions instead of using integers',
-          type: 'switch',
-        },
-      ],
-      Animations: [
-        {
-          target: 'at',
-          default: 16,
-          description:
-            'use N-bit quantization for translations (default: 16; N should be between 1 and 24)',
-          type: 'range',
-          max: 24,
-        },
-        {
-          target: 'at',
-          default: 12,
-          description:
-            ' use N-bit quantization for rotations (default: 12; N should be between 4 and 16)',
-          type: 'range',
-          max: 16,
-        },
-        {
-          target: 'af',
-          default: 30,
-          description: 'resample animations at N Hz (default: 30)',
-          type: 'number',
-          max: Infinity,
-        },
-        {
-          target: 'ac',
-          default: false,
-          description:
-            'keep constant animation tracks even if they don`t modify the node transform',
-          type: 'switch',
-        },
-      ],
-      Scene: [
-        {
-          target: 'kn',
-          default: false,
-          description:
-            'keep named nodes and meshes attached to named nodes so that named nodes can be transformed externally',
-          type: 'switch',
-        },
-        {
-          target: 'km',
-          default: false,
-          description: ' keep named materials and disable named material merging',
-          type: 'switch',
-        },
-        {
-          target: 'ke',
-          default: false,
-          description: 'keep extras data',
-          type: 'switch',
-        },
-        {
-          target: 'mm',
-          default: false,
-          description: ' merge instances of the same mesh together when possible',
-          type: 'switch',
-        },
-        {
-          target: 'mi',
-          default: false,
-          description: ' use EXT_mesh_gpu_instancing when serializing multiple mesh instances',
-          type: 'switch',
-        },
-      ],
-    },
-  });
-
-  const getCliOPtion = (option: Array<gltfpackOption>, type: 'draco' | 'gltfpack') =>
-    option
-      .map((val) => {
-        if (val.type == 'range' || val.type == 'number') {
-          return `-${val.target}${type == 'draco' ? '=' : ' '}${val.default}`;
-        } else if (val.type == 'radio') {
-          return val.default ? `-${val.default}` : '';
-        } else if (val.type == 'switch' && val.default) {
-          return `-${val.target}`;
-        }
-      })
-      .filter((val) => val);
 
   const uploadFile = async () => {
     try {
@@ -499,22 +95,10 @@
       } else if (filesRef.value) {
         formData.append('gltf', filesRef.value);
       }
-      let cliOptions;
-      if (modeloptionType.value == 'draco') {
-        cliOptions = getCliOPtion(modelOption.value.dracoOption, 'draco');
-      } else {
-        let options: Array<gltfpackOption> = [];
-        for (const key in modelOption.value.gltfpackOption) {
-          const curOption = toRaw(modelOption.value.gltfpackOption[key]);
-          console.log(curOption);
-          options.push(...curOption);
-        }
-        cliOptions = getCliOPtion(options, 'gltfpack');
-      }
+      const { cliOptions, modeloptionType, pictureOption } = getCompressionOption();
       formData.append('cliOptions', JSON.stringify(cliOptions));
-      formData.append('modeloptionType', JSON.stringify(modeloptionType.value));
-      formData.append('pictureOption', JSON.stringify(pictureOption.value));
-
+      formData.append('modeloptionType', JSON.stringify(modeloptionType));
+      formData.append('pictureOption', JSON.stringify(pictureOption));
       const res = await fetch('/uploadFile', {
         method: 'post',
         body: formData,
@@ -602,3 +186,4 @@
     document.body.removeChild(link);
   };
 </script>
+./CompressionOption

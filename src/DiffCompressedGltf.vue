@@ -1,6 +1,9 @@
 <template>
-  <section ref="diffRef">
-    <a class="title" draggable="false">Compressed-Model-Diff</a>
+  <section
+    ref="diffRef"
+    class="card relative flex flex-grow overflow-hidden bg-base-200 transition duration-500 hover:shadow-xl hover:duration-200"
+  >
+    <a class="title" draggable="false">模型对比</a>
     <canvas class="canvas" ref="canvas"></canvas>
 
     <!-- <transition name="fade" appear>
@@ -43,25 +46,25 @@
     <div
       class="info-can card bg-base-300 bg-opacity-20 p-3 text-xs transition duration-300 hover:bg-opacity-100 hover:shadow-xl"
     >
-      <div class="info-first">left</div>
-      <div>right</div>
+      <div class="info-first">原始模型信息</div>
+      <div>压缩后模型信息</div>
 
-      <div class="info-metrics">size</div>
+      <div class="info-metrics">大小</div>
       <div>{{ (modelInfo.original.size / 1024 / 1024).toFixed(2) }}MB</div>
       <div>{{ (modelInfo.diff.size / 1024 / 1024).toFixed(2) }}MB</div>
-      <div class="info-metrics">load</div>
+      <div class="info-metrics">加载用时</div>
       <div>{{ modelInfo.original.loadTime }}ms</div>
       <div>{{ modelInfo.diff.loadTime }}ms</div>
-      <div class="info-metrics">objects</div>
+      <div class="info-metrics">对象</div>
       <div>{{ modelInfo.original.objects }}</div>
       <div>{{ modelInfo.diff.objects }}</div>
-      <div class="info-metrics">vertices</div>
+      <div class="info-metrics">顶点</div>
       <div>{{ modelInfo.original.vertices }}</div>
       <div>{{ modelInfo.diff.vertices }}</div>
-      <div class="info-metrics">triangles</div>
+      <div class="info-metrics">三角形</div>
       <div>{{ modelInfo.original.triangles }}</div>
       <div>{{ modelInfo.diff.triangles }}</div>
-      <div class="info-metrics">extensions</div>
+      <div class="info-metrics">扩展</div>
       <div>
         <div v-for="ext in modelInfo.original.ext" :key="ext">{{ ext }}</div>
       </div>

@@ -6,3 +6,20 @@ declare module '*.vue' {
   const component: DefineComponent<{}, {}, any>;
   export default component;
 }
+
+interface gltfpackOption {
+  target: string;
+  description:
+    | string
+    | Array<{
+        label: string;
+        translateLabel?: string;
+        value: string;
+      }>;
+  translateDes?: string;
+  type: 'radio' | 'range' | 'switch' | 'number';
+  default: number | string | boolean;
+  setp?: number;
+  max?: number;
+  min?: number;
+}

@@ -78,7 +78,6 @@ export const compression = async ({
       }
       const size = await (await fse.stat(targetFilePath)).size;
       const endTime = hrtime(startTime);
-      console.log(endTime);
       const dataInfo = {
         fileName: baseName,
         filePath: '/gltf/' + baseName,
@@ -87,7 +86,7 @@ export const compression = async ({
         size: size,
       };
       dataList.push(dataInfo);
-      // await remove(catchName);
+      await remove(catchName);
       await remove(fullPath);
       return {
         dataInfo,

@@ -22,7 +22,7 @@ app.use(async (ctx, next) => {
   try {
     await next();
     const ms = new Date() - start;
-    console.log(`${ctx.method} ${ctx.url} - ${ms}ms`);
+    console.log(`${ctx.method} ${ctx.url} - ${ms}ms ${ctx.ip}`);
   } catch (error) {
     const ms = new Date() - start;
     console.log(`error ${ctx.method} ${ctx.url} - ${ms}ms`);
