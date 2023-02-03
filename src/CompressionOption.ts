@@ -1,8 +1,8 @@
-import localforage from 'localforage';
-import { ref, toRaw, reactive } from 'vue';
+import { ref, toRaw, reactive, watch } from 'vue';
+import message from 'vue-m-message';
 export const modeloptionType = ref<'draco' | 'gltfpack'>('draco');
 
-export const pictureOption = reactive({
+export const pictureOption = ref({
   isOpen: true,
   quality: 80,
   lossless: false,
@@ -299,8 +299,48 @@ export const getCompressionOption = () => {
   return {
     cliOptions,
     modeloptionType: modeloptionType.value,
-    pictureOption: toRaw(pictureOption),
+    pictureOption: toRaw(pictureOption.value),
   };
+};
+
+/**
+ * 处理远程存储的数据
+ * @param optionsKey {string}
+ */
+const handCompressionOption = async (optionsKey: any) => {
+  const { data: remoteOption } = await (await fetchOption({ mode: 'query', optionsKey })).json();
+  pictureOption.value = remoteOption.pictureOption;
+  modeloptionType.value = remoteOption.modeloptionType;
+  remoteOption.cliOptions.forEach((val: string) => {
+    const [key, value] = val.split(' ');
+    if (modeloptionType.value == 'draco') {
+      const curOptionItem = modelOption.dracoOption.find((val) => {
+        return '-' + toRaw(val).target == key;
+      });
+      if (curOptionItem) {
+        curOptionItem.default = JSON.parse(value);
+      }
+    } else {
+      for (const optionKey in modelOption.gltfpackOption) {
+        modelOption.gltfpackOption[optionKey].forEach((val) => {
+          const _val = toRaw(val);
+          const _key = key.slice(1);
+          if ((_val.type == 'number' || _val.type == 'range') && _val.target == _key) {
+            val.default = value;
+          } else if (_val.type == 'radio') {
+            if (
+              Array.isArray(_val.description) &&
+              _val.description.some((val) => val.value == _key)
+            ) {
+              val.default = _key;
+            }
+          } else if (_val.type == 'switch') {
+            val.default = _val.target == _key ? true : false;
+          }
+        });
+      }
+    }
+  });
 };
 
 export const optionConfig = reactive<{
@@ -313,34 +353,69 @@ export const optionConfig = reactive<{
   savingOptionName: '',
 });
 
-export const updateOptionList = async () => {
-  const keys = await localforage.keys();
-  console.log(keys);
-  optionConfig.optionListKey = keys;
-  optionConfig.savingOptionName = '';
-};
-
-export const deleteOptions = async (key: string) => {
-  await localforage.removeItem(key);
-  await updateOptionList();
-};
-
-export const saveOptions = async (key?: string) => {
-  await localforage.setItem(key || optionConfig.savingOptionName, {
-    modeloptionType: modeloptionType.value,
-    pictureOption: toRaw(pictureOption),
-    modelOption: toRaw(modelOption),
+const fetchOption = (data: {
+  mode: 'set' | 'get' | 'delete' | 'query';
+  optionsKey?: string;
+  optionsValue?: any;
+}) => {
+  return fetch('/handOption', {
+    method: 'post',
+    body: JSON.stringify(data),
+    headers: {
+      'Content-Type': 'application/json',
+    },
   });
-  await updateOptionList();
 };
 
-localforage
-  .length()
-  .then(async (len) => {
-    if (!len) {
-      return saveOptions('默认');
+watch(
+  () => optionConfig.activeOption,
+  (val, oldval) => {
+    if (val != oldval) {
+      handCompressionOption(optionConfig.activeOption);
+      localStorage.setItem('activeOption', optionConfig.activeOption);
     }
-  })
-  .finally(() => {
-    updateOptionList();
-  });
+  },
+);
+
+export const saveOption = async () => {
+  if (!optionConfig.savingOptionName) {
+    message.error('请输入当前配置的名称');
+  } else {
+    const { code, msg } = await (
+      await fetchOption({
+        mode: 'set',
+        optionsKey: optionConfig.savingOptionName,
+        optionsValue: getCompressionOption(),
+      })
+    ).json();
+    if (code == 200) {
+      message.success(msg);
+      const res = await fetchOption({ mode: 'get' });
+      const { data } = await res.json();
+      optionConfig.optionListKey = data.keys;
+      optionConfig.activeOption = optionConfig.savingOptionName;
+      optionConfig.savingOptionName = '';
+    }
+  }
+};
+
+// export const delOption = async (optionsKey: string) => {
+//   const { code, msg } = await fetchOption({ mode: 'delete', optionsKey });
+//   if (code == 200) {
+//     message.success(msg);
+//   }
+// };
+
+try {
+  const res = await fetchOption({ mode: 'get' });
+  const { data } = await res.json();
+  optionConfig.optionListKey = data.keys;
+  const localActiveOption = localStorage.getItem('activeOption');
+  if (localActiveOption) {
+    optionConfig.activeOption = localActiveOption;
+  } else {
+    optionConfig.activeOption = data.keys[0];
+  }
+} catch (error) {
+  console.error(error);
+}

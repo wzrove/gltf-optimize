@@ -32,19 +32,21 @@
             <div class="stat-title">压缩后大小</div>
             <div class="stat-value">{{ getfilesize(diffFileInfo?.CurSize) || 0 }}</div>
             <div class="stat-actionsg flex items-center justify-around gap-x-2">
-              <input
-                type="text"
-                placeholder="文件名显示在这儿，可修改"
-                class="input-bordered input input-xs text-black"
-                v-model="diffFileInfo.fileName"
-              />
-              <button
-                class="btn btn-xs"
-                @click="fileDownload"
-                :disabled="diffFileInfo.filePath ? false : true"
-              >
-                下载</button
-              >
+              <div class="input-group">
+                <input
+                  type="text"
+                  placeholder="文件名，可修改"
+                  class="input-bordered input text-black"
+                  v-model="diffFileInfo.fileName"
+                />
+                <button
+                  class="btn"
+                  @click="fileDownload"
+                  :disabled="diffFileInfo.filePath ? false : true"
+                >
+                  下载</button
+                >
+              </div>
             </div>
           </div>
           <div class="stat">
@@ -96,9 +98,15 @@
         formData.append('gltf', filesRef.value);
       }
       const { cliOptions, modeloptionType, pictureOption } = getCompressionOption();
-      formData.append('cliOptions', JSON.stringify(cliOptions));
-      formData.append('modeloptionType', JSON.stringify(modeloptionType));
-      formData.append('pictureOption', JSON.stringify(pictureOption));
+      formData.append(
+        'option',
+        JSON.stringify({
+          cliOptions,
+          modeloptionType,
+          pictureOption,
+        }),
+      );
+
       const res = await fetch('/uploadFile', {
         method: 'post',
         body: formData,
@@ -135,37 +143,6 @@
     filePath: '',
     time: 0,
   });
-  // let ws: WebSocket;
-
-  // const wsServer = () => {
-  //   if (ws?.readyState == 1) {
-  //     return ws;
-  //   } else
-  //     return new Promise((res: (value: WebSocket) => void, rej) => {
-  //       ws = new WebSocket('ws://localhost:3000/scoket');
-  //       ws.onopen = () => {
-  //         res(ws);
-  //       };
-  //       ws.onclose = () => {
-  //         rej('连接关闭');
-  //       };
-  //       ws.onerror = () => {
-  //         rej('连接失败');
-  //       };
-  //       ws.onmessage = ({ data }) => {
-  //         const { type, msg, data: _data } = JSON.parse(data);
-  //         console.log(_data);
-  //         if (type == 'compression') {
-  //           buttonState.isLoading = false;
-  //           diffFileInfo.filePath = _data.fileName + '.glb';
-  //           diffFileInfo.fileName = _data.fileName;
-  //           diffFileInfo.CurSize = _data.size;
-  //           buttonState.text = '压缩完成';
-  //           Message.success(msg);
-  //         }
-  //       };
-  //     });
-  // };
   function getfilesize(size: number | undefined) {
     if (!size) return '';
     var num = 1024.0; //byte

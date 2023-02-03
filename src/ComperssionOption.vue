@@ -2,18 +2,32 @@
   <div
     class="min-w-sm card card-compact max-h-screen w-2/5 bg-base-200 px-10 py-5 transition duration-500 hover:shadow-xl hover:duration-200"
   >
-    <div>
+    <div class="flex justify-between">
       <div class="dropdown-bottom dropdown">
         <label tabindex="0" class="btn btn-sm">{{ optionConfig.activeOption }}</label>
-        <ul tabindex="0" class="dropdown-content menu rounded-box bg-base-100 p-2 shadow">
-          <li v-for="item in optionConfig.optionListKey" :key="item"
-            ><a>{{ item }}</a></li
+        <ul
+          tabindex="0"
+          class="dropdown-content rounded-btn flex max-h-40 flex-col flex-nowrap overflow-y-auto bg-base-100 py-1 px-2 shadow"
+        >
+          <li
+            v-for="item in optionConfig.optionListKey"
+            :key="item"
+            class="flex cursor-pointer flex-row justify-between gap-1 py-2 px-2 hover:bg-base-200 hover:rounded-btn"
+            ><a @click="optionConfig.activeOption = item">{{ item }}</a
+            ><span class="rounded px-2 hover:bg-base-300">x</span></li
           >
         </ul>
       </div>
-      <div>
-        <input type="text" class="input input-sm" v-model="optionConfig.savingOptionName" />
-        <button class="btn btn-sm" @click="saveOptions()"> 保存</button>
+      <div class="form-control">
+        <div class="input-group">
+          <input
+            type="text"
+            class="input input-sm"
+            placeholder="输入配置名称"
+            v-model="optionConfig.savingOptionName"
+          />
+          <button class="btn btn-sm" @click="saveOption"> 保存配置</button>
+        </div>
       </div>
     </div>
     <div class="divider"></div>
@@ -64,7 +78,7 @@
               name="radio-10"
               @change="modeloptionType = 'draco'"
               class="radio"
-              checked
+              :checked="modeloptionType == 'draco'"
             />
           </label>
         </div>
@@ -76,6 +90,7 @@
               name="radio-10"
               @change="modeloptionType = 'gltfpack'"
               class="radio"
+              :checked="modeloptionType == 'gltfpack'"
             />
           </label>
         </div>
@@ -173,6 +188,6 @@
     showRawDec,
     modelOption,
     optionConfig,
-    saveOptions,
+    saveOption,
   } from './CompressionOption';
 </script>

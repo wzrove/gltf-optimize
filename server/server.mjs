@@ -3,11 +3,10 @@ import Router from 'koa-router';
 import { koaBody } from 'koa-body';
 import staticServe from 'koa-static';
 import cors from 'koa2-cors';
-// import { WebSocketServer } from 'ws';
+import fse from 'fs-extra';
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { compression } from './index.mjs';
-
 const app = new Koa();
 const router = new Router();
 app.use(cors());
@@ -15,6 +14,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const catchPath = __dirname + '/catch';
 const assetsPath = __dirname + '/dist';
+const optionPath = __dirname + '/options.json';
+export const optionJSON = await fse.readJSON(optionPath);
+
 // let wsServer;
 app.use(staticServe(assetsPath));
 app.use(async (ctx, next) => {
@@ -38,7 +40,7 @@ router.post(
   koaBody({
     multipart: true,
     encoding: 'gzip',
-    json: true,
+    jsonStrict: false,
     formidable: {
       maxFieldsSize: Infinity,
       maxFields: Infinity,
@@ -52,9 +54,13 @@ router.post(
     if (ctx.request.files.gltf) {
       const file = ctx.request.files.gltf;
       try {
+        const bodyData = ctx.request.body;
+        const paramData = bodyData.optionKey
+          ? optionJSON[bodyData.optionKey]
+          : JSON.parse(bodyData.option);
         const data = await compression({
           input: catchPath + '/' + file.newFilename,
-          ...ctx.request.body,
+          ...paramData,
           rawFileName: file.originalFilename,
         });
         ctx.body = {
@@ -63,7 +69,6 @@ router.post(
           data,
         };
       } catch (error) {
-        console.error(error.message);
         ctx.status = 400;
         ctx.body = { msg: error.message };
       }
@@ -76,6 +81,45 @@ router.post(
   },
 );
 
+router.post('/handOption', koaBody(), async (ctx) => {
+  try {
+    const { optionsKey, optionsValue, mode } = ctx.request.body;
+    console.log(ctx.request.body.mode);
+    let data, msg;
+    switch (mode) {
+      case 'get':
+        data = {
+          keys: Object.keys(optionJSON),
+        };
+        msg = '获取成功';
+        break;
+      case 'set':
+        optionJSON[optionsKey] = optionsValue;
+        await fse.writeJSON(optionPath, optionJSON);
+        msg = '设置成功';
+        break;
+      case 'delete':
+        delete optionJSON[optionsKey];
+        await fse.writeJSON(optionPath, optionJSON);
+        data = '删除成功';
+        break;
+      case 'query':
+        data = optionJSON[optionsKey];
+        msg = '查询成功';
+        break;
+      default:
+        throw new Error('无法处理此模式');
+    }
+    ctx.body = {
+      code: 200,
+      data,
+      msg,
+    };
+  } catch (error) {
+    ctx.status = 400;
+    ctx.body = { msg: error.message };
+  }
+});
 app.use(router.routes()).use(router.allowedMethods());
 
 app.listen(3000).on('error', (err) => {

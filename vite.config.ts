@@ -27,10 +27,14 @@ export default defineConfig({
         },
       },
     },
+    target: 'es2022',
   },
   server: {
     proxy: {
-      '/uploadFile': 'http://localhost:3000/',
+      '^(/handOption|/uploadFile)/*': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+      },
     },
   },
 });

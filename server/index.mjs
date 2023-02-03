@@ -25,9 +25,10 @@ export const compression = async ({
   pictureOption,
   rawFileName,
 }) => {
-  modeloptionType = JSON.parse(modeloptionType);
-  cliOptions = JSON.parse(cliOptions);
-  pictureOption = JSON.parse(pictureOption);
+  const parse = (data) => (typeof data == 'string' ? JSON.parse(data) : data);
+  modeloptionType = modeloptionType;
+  cliOptions = parse(cliOptions);
+  pictureOption = parse(pictureOption);
   const dataList = [];
   // await fse.mkdirp(resultsFiles);
   await checkFileExtension(input, async ({ extName, baseName, fullPath }) => {
@@ -94,6 +95,9 @@ export const compression = async ({
     } catch (error) {
       console.error(error);
       return Promise.reject(error);
+    } finally {
+      await remove(catchName);
+      await remove(fullPath);
     }
   });
   return dataList;
@@ -105,25 +109,31 @@ export const compression = async ({
  * @returns
  */
 async function checkFileExtension(path, fn) {
-  const fsState = await fse.stat(path);
-  const fileType = fsState.isFile() ? 'file' : 'directory';
-  const curExtname = extname(path);
-  const baseName = basename(path, curExtname);
-  const fullName = basename(path);
-  if (fileType == 'file') {
-    if (['.glb', '.gltf'].includes(curExtname)) {
-      await fn({
-        extName: curExtname,
-        baseName: baseName,
-        fullName,
-        fullPath: path,
-      });
-    } else return;
-  } else {
-    const dir = await fse.readdir(path);
-    for (const iterator of dir) {
-      await checkFileExtension(path + '/' + iterator, fn);
+  console.log(path);
+  try {
+    const fsState = await fse.stat(path);
+    const fileType = fsState.isFile() ? 'file' : 'directory';
+    const curExtname = extname(path);
+    const baseName = basename(path, curExtname);
+    const fullName = basename(path);
+
+    if (fileType == 'file') {
+      if (['.glb', '.gltf'].includes(curExtname)) {
+        await fn({
+          extName: curExtname,
+          baseName: baseName,
+          fullName,
+          fullPath: path,
+        });
+      } else return;
+    } else {
+      const dir = await fse.readdir(path);
+      for (const iterator of dir) {
+        await checkFileExtension(path + '/' + iterator, fn);
+      }
     }
+  } catch (error) {
+    console.error(error);
   }
 }
 
