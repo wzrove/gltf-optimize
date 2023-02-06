@@ -13,8 +13,8 @@
             v-for="item in optionConfig.optionListKey"
             :key="item"
             class="flex cursor-pointer flex-row justify-between gap-1 py-2 px-2 hover:bg-base-200 hover:rounded-btn"
-            ><a @click="optionConfig.activeOption = item">{{ item }}</a
-            ><span class="rounded px-2 hover:bg-base-300">x</span></li
+            ><a @click.capture="optionConfig.activeOption = item">{{ item }}</a
+            ><span class="rounded px-2 hover:bg-base-300" @click.stop="delOption(item)">x</span></li
           >
         </ul>
       </div>
@@ -23,10 +23,12 @@
           <input
             type="text"
             class="input input-sm"
-            placeholder="输入配置名称"
+            placeholder="输入名称，保存为新配置"
             v-model="optionConfig.savingOptionName"
           />
-          <button class="btn btn-sm" @click="saveOption"> 保存配置</button>
+          <button class="btn btn-sm" @click="saveOption">
+            {{ optionConfig.savingOptionName ? '保存配置' : '更新配置' }}</button
+          >
         </div>
       </div>
     </div>
@@ -189,5 +191,6 @@
     modelOption,
     optionConfig,
     saveOption,
+    delOption,
   } from './CompressionOption';
 </script>

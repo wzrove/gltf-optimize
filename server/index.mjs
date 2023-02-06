@@ -87,8 +87,6 @@ export const compression = async ({
         size: size,
       };
       dataList.push(dataInfo);
-      await remove(catchName);
-      await remove(fullPath);
       return {
         dataInfo,
       };

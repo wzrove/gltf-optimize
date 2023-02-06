@@ -15,6 +15,13 @@ const __dirname = dirname(__filename);
 const catchPath = __dirname + '/catch';
 const assetsPath = __dirname + '/dist';
 const optionPath = __dirname + '/options.json';
+try {
+  await fse.mkdir(catchPath);
+  await fse.mkdir(assetsPath + '/gltf');
+} catch (error) {
+  console.error(error);
+}
+
 export const optionJSON = await fse.readJSON(optionPath);
 
 // let wsServer;
@@ -84,7 +91,6 @@ router.post(
 router.post('/handOption', koaBody(), async (ctx) => {
   try {
     const { optionsKey, optionsValue, mode } = ctx.request.body;
-    console.log(ctx.request.body.mode);
     let data, msg;
     switch (mode) {
       case 'get':
@@ -101,7 +107,7 @@ router.post('/handOption', koaBody(), async (ctx) => {
       case 'delete':
         delete optionJSON[optionsKey];
         await fse.writeJSON(optionPath, optionJSON);
-        data = '删除成功';
+        msg = '删除成功';
         break;
       case 'query':
         data = optionJSON[optionsKey];

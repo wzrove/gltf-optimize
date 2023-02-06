@@ -349,7 +349,7 @@ export const optionConfig = reactive<{
   savingOptionName: string;
 }>({
   optionListKey: [],
-  activeOption: '默认',
+  activeOption: '',
   savingOptionName: '',
 });
 
@@ -378,35 +378,39 @@ watch(
 );
 
 export const saveOption = async () => {
-  if (!optionConfig.savingOptionName) {
-    message.error('请输入当前配置的名称');
-  } else {
-    const { code, msg } = await (
-      await fetchOption({
-        mode: 'set',
-        optionsKey: optionConfig.savingOptionName,
-        optionsValue: getCompressionOption(),
-      })
-    ).json();
-    if (code == 200) {
-      message.success(msg);
-      const res = await fetchOption({ mode: 'get' });
-      const { data } = await res.json();
-      optionConfig.optionListKey = data.keys;
-      optionConfig.activeOption = optionConfig.savingOptionName;
-      optionConfig.savingOptionName = '';
-    }
+  const optionsKey = optionConfig.savingOptionName || optionConfig.activeOption;
+  const { code, msg } = await (
+    await fetchOption({
+      mode: 'set',
+      optionsKey,
+      optionsValue: getCompressionOption(),
+    })
+  ).json();
+  if (code == 200) {
+    message.success(msg);
+    const res = await fetchOption({ mode: 'get' });
+    const { data } = await res.json();
+    optionConfig.optionListKey = data.keys;
+    optionConfig.activeOption = optionsKey;
+    optionConfig.savingOptionName = '';
   }
 };
 
-// export const delOption = async (optionsKey: string) => {
-//   const { code, msg } = await fetchOption({ mode: 'delete', optionsKey });
-//   if (code == 200) {
-//     message.success(msg);
-//   }
-// };
+export const delOption = async (optionsKey: string) => {
+  try {
+    if (optionsKey == '默认') throw new Error('不可删除默认选项');
+    const { code, msg } = await (await fetchOption({ mode: 'delete', optionsKey })).json();
+    if (code == 200) {
+      await getOptionList();
+      message.success(msg);
+      optionConfig.activeOption = '默认';
+    }
+  } catch (error) {
+    message.error(error as any);
+  }
+};
 
-try {
+export const getOptionList = async () => {
   const res = await fetchOption({ mode: 'get' });
   const { data } = await res.json();
   optionConfig.optionListKey = data.keys;
@@ -416,6 +420,5 @@ try {
   } else {
     optionConfig.activeOption = data.keys[0];
   }
-} catch (error) {
-  console.error(error);
-}
+};
+window.addEventListener('load', getOptionList);
