@@ -88,7 +88,7 @@ export const modelOption = reactive<{
     Textures: [
       {
         target: '',
-        default: 'tc',
+        default: '',
         description: [
           {
             label: 'convert all textures to KTX2 with BasisU supercompression',
@@ -291,7 +291,6 @@ export const getCompressionOption = () => {
     const options: Array<gltfpackOption> = [];
     for (const key in modelOption.gltfpackOption) {
       const curOption = toRaw(modelOption.gltfpackOption[key]);
-      console.log(curOption);
       options.push(...curOption);
     }
     cliOptions = getCliOPtion(options, 'gltfpack');
@@ -328,11 +327,10 @@ const handCompressionOption = async (optionsKey: any) => {
           if ((_val.type == 'number' || _val.type == 'range') && _val.target == _key) {
             val.default = value;
           } else if (_val.type == 'radio') {
-            if (
-              Array.isArray(_val.description) &&
-              _val.description.some((val) => val.value == _key)
-            ) {
-              val.default = _key;
+            if (Array.isArray(_val.description)) {
+              if (_val.description.some((val) => val.value == _key)) {
+                val.default = _key;
+              }
             }
           } else if (_val.type == 'switch') {
             val.default = _val.target == _key ? true : false;
