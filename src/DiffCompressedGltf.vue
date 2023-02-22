@@ -18,7 +18,7 @@
           v-for="mode in modeCfg.list"
           :key="mode"
           draggable="false"
-          class="btn btn-xs"
+          class="btn-xs btn"
           :class="{
             'btn-active': mode === modeCfg.curr,
           }"
@@ -28,7 +28,7 @@
       </div>
       <div>
         <input class="checkbox checkbox-xs" type="checkbox" v-model="modeCfg.wireframe" />线框模式
-        <button class="btn btn-xs" @click="toggle">
+        <button class="btn-xs btn" @click="toggle">
           {{ isFullscreen ? '退出' : '全屏' }}
         </button>
       </div>

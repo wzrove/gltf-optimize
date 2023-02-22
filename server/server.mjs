@@ -77,7 +77,7 @@ router.post(
         };
       } catch (error) {
         ctx.status = 400;
-        ctx.body = { msg: error.message };
+        ctx.body = { msg: error?.message || error };
       }
     } else {
       ctx.status = 400;

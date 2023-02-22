@@ -66,17 +66,18 @@ export const compression = async ({
         );
         console.log(imageMsg.stdout);
       }
-
       const targetFilePath = resultsFiles + '/gltf/' + baseName + '.glb';
+      let message;
       if (modeloptionType == 'draco') {
-        await promisify(exec)(
+        message = await promisify(exec)(
           `${dracoPath} -i ${catchFullPath} -o ${targetFilePath} ${cliOptions.join(' ')} `,
         );
       } else {
-        await promisify(exec)(
+        message = await promisify(exec)(
           `${gltfpackPath} -i ${catchFullPath} -o ${targetFilePath} ${cliOptions.join(' ')} -tj 4`,
         );
       }
+      console.log(message.stdout);
       const size = await (await fse.stat(targetFilePath)).size;
       const endTime = hrtime(startTime);
       const dataInfo = {
@@ -87,15 +88,18 @@ export const compression = async ({
         size: size,
       };
       dataList.push(dataInfo);
+      await remove(catchName);
+      await remove(fullPath);
       return {
         dataInfo,
       };
     } catch (error) {
-      console.error(error);
+      if (error?.stdout) {
+        const errList = error.stdout.split(`\t`);
+        console.log(errList);
+        error = errList[2];
+      }
       return Promise.reject(error);
-    } finally {
-      await remove(catchName);
-      await remove(fullPath);
     }
   });
   return dataList;
@@ -132,6 +136,7 @@ async function checkFileExtension(path, fn) {
     }
   } catch (error) {
     console.error(error);
+    return Promise.reject(error);
   }
 }
 

@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "build": "vue-tsc --noEmit && vite build",
-    "serve": "pm2 start ./server/server.mjs --name server --watch ./server/server.mjs   -o ./server/log.txt ",
+    "serve": "pm2 start ./server/server.mjs --name server --watch ./server/server.mjs --watch  ./server/index.mjs  -o ./server/log.txt ",
     "preview": "vite preview",
     "lint:lint-staged": "lint-staged -c ./.husky/lintstagedrc.js",
     "lint:eslint": "eslint --cache --max-warnings 0  \"{src,mock}/**/*.{vue,ts,tsx}\" --fix",
