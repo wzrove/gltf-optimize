@@ -11,7 +11,7 @@ const __dirname = dirname(__filename);
 
 const gltfpackPath = __dirname + '/tools/gltfpack';
 const caesiumcltPath = __dirname + '/tools/caesiumclt';
-const dracoPath = __dirname + '/tools/draco_transcoder-1.5.5';
+const dracoPath = __dirname + '/tools/draco_transcoder';
 const resultsFiles = __dirname + '/dist';
 
 /**

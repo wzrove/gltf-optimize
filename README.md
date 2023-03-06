@@ -63,7 +63,7 @@ cmake --build . --target gltfpack --config Release
 
 ## 启动
 
-```
+```bash
 安装依赖
 pnpm i
 
