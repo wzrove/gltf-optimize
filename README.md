@@ -38,6 +38,17 @@
 
 git clone https://github.com/Lymphatus/caesium-clt.git --depth 1
 
+vim ~/.cargo/config
+# 添加以下内容
+
+--- start ---
+[source.crates-io]
+replace-with = 'tuna'
+
+[source.tuna]
+registry = "https://mirrors.tuna.tsinghua.edu.cn/git/crates.io-index.git"
+--- end ---
+
 source "$HOME/.cargo/env"
 
 cargo run build
