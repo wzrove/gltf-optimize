@@ -3,55 +3,113 @@
     <ComperssionOption />
     <div class="container card flex-col gap-y-5 overflow-hidden">
       <section
-        class="card flex items-center justify-center gap-y-2 bg-base-200 p-2 transition duration-500 hover:shadow-xl hover:duration-200"
+        class="card flex flex-row items-center justify-around gap-y-2 bg-base-200 p-2 transition duration-500 hover:shadow-xl hover:duration-200"
       >
-        <div class="form-control">
-          <label class="label"> 选择上传的文件（glb,gltf） </label>
-          <input
-            type="file"
-            accept=".glb,.gltf,.mp4"
-            multiple
-            :files="filesRef"
-            ref="fileRef"
-            @change="fileChange"
-            class="file-input-bordered file-input w-full max-w-xs"
-          />
-        </div>
-        <div class="stats" v-show="diffFileInfo.isShow">
-          <div class="stat">
-            <div class="stat-title">原始大小</div>
-            <div class="stat-value">{{ getfilesize(filesRef?.size) || 0 }}</div>
-            <div class="stat-actions">
-              <button class="btn" :class="{ loading: buttonState.isLoading }" @click="uploadFile">{{
-                buttonState.text
-              }}</button>
+        <div>
+          <div class="form-control w-full max-w-xs">
+            <label class="label">
+              <span class="label-text">请上传mp4文件进行切片</span>
+            </label>
+            <input
+              type="file"
+              :file="videoFile"
+              accept=".mp4"
+              @change="videoFileChange"
+              class="file-input-bordered file-input w-full max-w-xs"
+              :multiple="false"
+            />
+          </div>
+          <div class="form-control w-full max-w-xs">
+            <label class="label">
+              <span class="label-text">对该视频的描述</span>
+            </label>
+
+            <textarea
+              class="textarea-bordered textarea h-14"
+              v-model="videoFroms.videoDec"
+              placeholder="简短的描述该视频"
+            ></textarea>
+          </div>
+          <div class="form-control w-full max-w-xs">
+            <label class="label">
+              <span class="label-text">视频名称</span>
+            </label>
+            <div class="input-group">
+              <input
+                type="text"
+                placeholder="请输入视频名称"
+                max="10"
+                class="input-bordered input text-black"
+                v-model="videoFroms.videoName"
+              />
+              <button
+                class="btn"
+                @click="uploadVideo"
+                :disabled="videoFroms.videoName && videoFroms.videoDec ? false : true"
+              >
+                上传</button
+              >
+              <button
+                class="btn"
+                @click="exportVideo"
+                :disabled="diffFileInfo.filePath ? false : true"
+              >
+                导出</button
+              >
             </div>
           </div>
-
-          <div class="stat">
-            <div class="stat-title">压缩后大小</div>
-            <div class="stat-value">{{ getfilesize(diffFileInfo?.CurSize) || 0 }}</div>
-            <div class="stat-actionsg flex items-center justify-around gap-x-2">
-              <div class="input-group">
-                <input
-                  type="text"
-                  placeholder="文件名，可修改"
-                  class="input-bordered input text-black"
-                  v-model="diffFileInfo.fileName"
-                />
+        </div>
+        <div>
+          <div class="form-control">
+            <label class="label"> 选择上传的文件（glb,gltf） </label>
+            <input
+              type="file"
+              accept=".glb,.gltf"
+              :files="filesRef"
+              ref="fileRef"
+              @change="fileChange"
+              class="file-input-bordered file-input w-full max-w-xs"
+            />
+          </div>
+          <div class="stats" v-show="diffFileInfo.isShow">
+            <div class="stat">
+              <div class="stat-title">原始大小</div>
+              <div class="stat-value">{{ getfilesize(filesRef?.size) || 0 }}</div>
+              <div class="stat-actions">
                 <button
                   class="btn"
-                  @click="fileDownload"
-                  :disabled="diffFileInfo.filePath ? false : true"
-                >
-                  下载</button
+                  :class="{ loading: buttonState.isLoading }"
+                  @click="uploadFile"
+                  >{{ buttonState.text }}</button
                 >
               </div>
             </div>
-          </div>
-          <div class="stat">
-            <div class="stat-title">压缩用时</div>
-            <div class="stat-value">{{ diffFileInfo.time }}S</div>
+
+            <div class="stat">
+              <div class="stat-title">压缩后大小</div>
+              <div class="stat-value">{{ getfilesize(diffFileInfo?.CurSize) || 0 }}</div>
+              <div class="stat-actionsg flex items-center justify-around gap-x-2">
+                <div class="input-group">
+                  <input
+                    type="text"
+                    placeholder="文件名，可修改"
+                    class="input-bordered input text-black"
+                    v-model="diffFileInfo.fileName"
+                  />
+                  <button
+                    class="btn"
+                    @click="fileDownload"
+                    :disabled="diffFileInfo.filePath ? false : true"
+                  >
+                    下载</button
+                  >
+                </div>
+              </div>
+            </div>
+            <div class="stat">
+              <div class="stat-title">压缩用时</div>
+              <div class="stat-value">{{ diffFileInfo.time }}S</div>
+            </div>
           </div>
         </div>
       </section>
@@ -162,5 +220,34 @@
     link.click();
     document.body.removeChild(link);
   };
+
+  const videoFroms = reactive({
+    videoName: '',
+    videoDec: '',
+  });
+  const videoFile = ref<File>();
+
+  const uploadVideo = async () => {
+    const formData = new FormData();
+    formData.append('videoName', videoFroms.videoName);
+    formData.append('videoDec', videoFroms.videoDec);
+    if (videoFile.value) formData.append('videoFile', videoFile.value);
+    else Message.error('请选择mp4文件');
+    const res = await fetch('/uploadVideo', {
+      method: 'post',
+      body: formData,
+    });
+    const data = await res.json();
+    console.log(data, '--');
+  };
+  const videoFileChange = (e: Event) => {
+    const target = e.currentTarget as HTMLInputElement;
+    if (target.files) {
+      videoFile.value = target.files[0];
+      videoFroms.videoDec = '';
+      videoFroms.videoName = '';
+    }
+  };
+  const exportVideo = () => {};
 </script>
 ./CompressionOption

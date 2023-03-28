@@ -26,6 +26,10 @@ export default defineConfig({
           333: ['three'],
         },
       },
+      input: {
+        main: resolve(__dirname, 'index.html'),
+        videolist: resolve(__dirname, 'videolist.html'),
+      },
     },
     terserOptions: {
       compress: {
@@ -37,7 +41,7 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      '^(/handOption|/uploadFile)/*': {
+      '^(/handOption|/uploadFile|/uploadVideo|/videoList)/*': {
         target: 'http://localhost:3000',
         changeOrigin: true,
       },

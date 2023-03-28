@@ -8,3 +8,5 @@ caesium-clt
 *.zip
 log.txt
 *.glb
+
+dist

@@ -6,7 +6,10 @@ import cors from 'koa2-cors';
 import fse from 'fs-extra';
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { compression } from './index.mjs';
+import { compression, getNameByPath } from './index.mjs';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+import { mkdir } from 'fs/promises';
 const app = new Koa();
 const router = new Router();
 app.use(cors());
@@ -15,6 +18,10 @@ const __dirname = dirname(__filename);
 const catchPath = __dirname + '/catch';
 const assetsPath = __dirname + '/dist';
 const optionPath = __dirname + '/options.json';
+const videoPath = __dirname + '/videoList.json';
+
+const m3u8Path = __dirname + '/dist/m3u8';
+
 try {
   await fse.mkdir(catchPath);
   await fse.mkdir(assetsPath + '/gltf');
@@ -23,6 +30,7 @@ try {
 }
 
 export const optionJSON = await fse.readJSON(optionPath);
+export const videoJSON = await fse.readJSON(videoPath);
 
 // let wsServer;
 app.use(staticServe(assetsPath));
@@ -88,6 +96,61 @@ router.post(
   },
 );
 
+router.post(
+  '/uploadVideo',
+  koaBody({
+    multipart: true,
+    encoding: 'gzip',
+    jsonStrict: false,
+    formidable: {
+      maxFieldsSize: Infinity,
+      maxFields: Infinity,
+      maxTotalFileSize: Infinity,
+      maxFileSize: Infinity,
+      uploadDir: catchPath,
+      keepExtensions: true,
+    },
+  }),
+  async (ctx) => {
+    if (ctx.request.files.videoFile) {
+      const file = ctx.request.files.videoFile;
+      const bodyData = ctx.request.body;
+      try {
+        const FilePathInfo = getNameByPath(file.newFilename);
+        const curPath = m3u8Path + '/' + FilePathInfo.baseName;
+        await mkdir(curPath);
+        await promisify(exec)(
+          `ffmpeg -i ${
+            catchPath + '/' + file.newFilename
+          } -c:v h264 -flags +cgop -g 30 -hls_time 10 -hls_list_size 0 -hls_segment_filename  ${curPath}/index%3d.ts ${curPath}/index.m3u8`,
+        );
+        const data = {
+          oriName: file.originalFilename,
+          curName: file.newFilename,
+          path: `/m3u8/${FilePathInfo.baseName}/index.m3u8`,
+          ...bodyData,
+        };
+        videoJSON.push(data);
+        await fse.writeJSON(videoPath, videoJSON);
+        ctx.status = 200;
+        ctx.body = {
+          data,
+          msg: '视频切片成功',
+        };
+        // videoJSON
+      } catch (error) {
+        ctx.status = 400;
+        ctx.body = { msg: error?.message || error };
+      }
+    } else {
+      ctx.status = 400;
+      ctx.body = {
+        msg: '请上传mp4文件',
+      };
+    }
+  },
+);
+
 router.post('/handOption', koaBody(), async (ctx) => {
   try {
     const { optionsKey, optionsValue, mode } = ctx.request.body;
@@ -126,6 +189,42 @@ router.post('/handOption', koaBody(), async (ctx) => {
     ctx.body = { msg: error.message };
   }
 });
+
+router.post('/handVideoOption', koaBody(), async (ctx) => {
+  try {
+    const optionJSON = videoJSON;
+    const videoPath = videoPath;
+    const { optionsValue, mode } = ctx.request.body;
+    let data, msg;
+    switch (mode) {
+      case 'get':
+        data = optionJSON;
+        msg = '获取成功';
+        break;
+      case 'set':
+        optionJSON.push(optionsValue);
+        await fse.writeJSON(optionPath, optionJSON);
+        msg = '设置成功';
+        break;
+      case 'delete':
+        optionJSON.splice(optionsValue, 1);
+        await fse.writeJSON(optionPath, optionJSON);
+        msg = '删除成功';
+        break;
+      default:
+        throw new Error('无法处理此模式');
+    }
+    ctx.body = {
+      code: 200,
+      data,
+      msg,
+    };
+  } catch (error) {
+    ctx.status = 400;
+    ctx.body = { msg: error.message };
+  }
+});
+
 app.use(router.routes()).use(router.allowedMethods());
 
 app.listen(3000).on('error', (err) => {

@@ -13,7 +13,6 @@ const gltfpackPath = __dirname + '/tools/gltfpack';
 const caesiumcltPath = __dirname + '/tools/caesiumclt';
 const dracoPath = __dirname + '/tools/draco_transcoder';
 const resultsFiles = __dirname + '/dist';
-
 /**
  *
  * @param {{input:string,modeloptionType:'draco'|any,cliOptions:Array<string>,rawFileName:string,ws:import('ws').WebSocket}} param0
@@ -105,12 +104,24 @@ export const compression = async ({
   return dataList;
 };
 
+export const getNameByPath = (path) => {
+  const curExtname = extname(path);
+  const baseName = basename(path, curExtname);
+  const fullName = basename(path);
+  return {
+    curExtname,
+    baseName,
+    fullName,
+  };
+};
+
 /**
  * @param {string} path
  * @param {({extName,baseName,fullName})=> viod} fn
+ * @param {Array<string>} extNameList
  * @returns
  */
-async function checkFileExtension(path, fn) {
+export async function checkFileExtension(path, fn, extNameList = ['.glb', '.gltf']) {
   console.log(path);
   try {
     const fsState = await fse.stat(path);
@@ -120,7 +131,7 @@ async function checkFileExtension(path, fn) {
     const fullName = basename(path);
 
     if (fileType == 'file') {
-      if (['.glb', '.gltf'].includes(curExtname)) {
+      if (extNameList.includes(curExtname)) {
         await fn({
           extName: curExtname,
           baseName: baseName,
