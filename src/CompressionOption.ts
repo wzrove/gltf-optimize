@@ -351,12 +351,16 @@ export const optionConfig = reactive<{
   savingOptionName: '',
 });
 
-const fetchOption = (data: {
-  mode: 'set' | 'get' | 'delete' | 'query';
-  optionsKey?: string;
-  optionsValue?: any;
-}) => {
-  return fetch('/handOption', {
+export const fetchOption = (
+  data: {
+    mode: 'set' | 'get' | 'delete' | 'query';
+    optionsKey?: string;
+    optionsValue?: any;
+    optionIndex?: number;
+  },
+  url = '/handOption',
+) => {
+  return fetch(url, {
     method: 'post',
     body: JSON.stringify(data),
     headers: {
@@ -419,4 +423,3 @@ export const getOptionList = async () => {
     optionConfig.activeOption = data.keys[0];
   }
 };
-window.addEventListener('load', getOptionList);

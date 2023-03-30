@@ -10,17 +10,13 @@
   <body>
     <div
       id="app"
-      class="container card mx-auto my-8 gap-4 bg-base-100 px-4 py-4 transition hover:shadow-xl lg:card-side"
+      class="container card mx-auto my-8 gap-4 overflow-hidden bg-base-100 px-4 py-4 shadow-xl transition lg:card-side"
     >
-      <ul class="menu rounded-box menu-compact w-56 gap-y-2 bg-base-100 p-2 lg:menu-normal">
-        <li><a>Item 1</a></li>
-        <li><a>Item 2</a></li>
-        <li><a>Item 3</a></li>
-      </ul>
-      <div class="h-auto flex-1" id="video-container">
-        <h1 class="text-lg font-bold">item1</h1>
-        <p>12345678912367899</p>
-        <video src="" class="w-full"></video>
+      <ul class="menu rounded-box menu-compact w-56  gap-y-2 bg-base-100 p-2 lg:menu-normal"> </ul>
+      <div class="relative h-auto  overflow-hidden" id="video-container">
+        <h1 class="text-lg font-bold videoName"></h1>
+        <p class="videoDec"></p>
+        <video src=""  class="w-full rounded-lg" controls autoplay></video>
       </div>
     </div>
     <script type="module" src="/src/videoList.ts"></script>

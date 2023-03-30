@@ -31,17 +31,12 @@ export default defineConfig({
         videolist: resolve(__dirname, 'videolist.html'),
       },
     },
-    terserOptions: {
-      compress: {
-        drop_console: true,
-        drop_debugger: true,
-      },
-    },
-    target: 'es2022',
+    minify: 'esbuild',
+    target: 'es2015',
   },
   server: {
     proxy: {
-      '^(/handOption|/uploadFile|/uploadVideo|/videoList)/*': {
+      '^(/handOption|/uploadFile|/uploadVideo|/handVideoOption|/m3u8|/exportData)/*': {
         target: 'http://localhost:3000',
         changeOrigin: true,
       },

@@ -3,7 +3,17 @@
     class="min-w-sm card card-compact max-h-screen w-2/5 bg-base-200 px-10 py-5 transition duration-500 hover:shadow-xl hover:duration-200"
   >
     <div class="flex justify-between">
-      <div class="dropdown-bottom dropdown">
+      <dropList
+        :activeValue="optionConfig.activeOption"
+        :data="optionConfig.optionListKey"
+        @onClick="
+          (e) => {
+            optionConfig.activeOption = optionConfig.optionListKey[e];
+          }
+        "
+        @on-delete="delOption(optionConfig.activeOption)"
+      />
+      <!-- <div class="dropdown-bottom dropdown">
         <label tabindex="0" class="btn btn-sm">{{ optionConfig.activeOption }}</label>
         <ul
           tabindex="0"
@@ -17,7 +27,7 @@
             ><span class="rounded px-2 hover:bg-base-300" @click.stop="delOption(item)">x</span></li
           >
         </ul>
-      </div>
+      </div> -->
       <div class="form-control">
         <div class="input-group">
           <input
@@ -26,7 +36,7 @@
             placeholder="输入名称，保存为新配置"
             v-model="optionConfig.savingOptionName"
           />
-          <button class="btn btn-sm" @click="saveOption">
+          <button class="btn-sm btn" @click="saveOption">
             {{ optionConfig.savingOptionName ? '保存配置' : '更新配置' }}</button
           >
         </div>
@@ -184,6 +194,8 @@
   </div>
 </template>
 <script lang="ts" setup>
+  import { onMounted } from 'vue';
+  import dropList from './dropList.vue';
   import {
     modeloptionType,
     pictureOption,
@@ -192,5 +204,9 @@
     optionConfig,
     saveOption,
     delOption,
+    getOptionList,
   } from './CompressionOption';
+  onMounted(() => {
+    getOptionList();
+  });
 </script>

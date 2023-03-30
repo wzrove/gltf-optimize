@@ -23,3 +23,9 @@ interface gltfpackOption {
   max?: number;
   min?: number;
 }
+
+interface fetchBodyOption {
+  mode: 'set' | 'get' | 'delete' | 'query';
+  optionsKey?: string;
+  optionsValue?: any;
+}

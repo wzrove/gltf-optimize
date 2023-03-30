@@ -9,7 +9,7 @@ import { fileURLToPath } from 'url';
 import { compression, getNameByPath } from './index.mjs';
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import { mkdir } from 'fs/promises';
+import { mkdir, readFile } from 'fs/promises';
 const app = new Koa();
 const router = new Router();
 app.use(cors());
@@ -23,8 +23,9 @@ const videoPath = __dirname + '/videoList.json';
 const m3u8Path = __dirname + '/dist/m3u8';
 
 try {
-  await fse.mkdir(catchPath);
   await fse.mkdir(assetsPath + '/gltf');
+  await fse.mkdir(assetsPath + '/m3u8');
+  await fse.mkdir(catchPath);
 } catch (error) {
   console.error(error);
 }
@@ -124,6 +125,7 @@ router.post(
             catchPath + '/' + file.newFilename
           } -c:v h264 -flags +cgop -g 30 -hls_time 10 -hls_list_size 0 -hls_segment_filename  ${curPath}/index%3d.ts ${curPath}/index.m3u8`,
         );
+        await fse.remove(catchPath + '/' + file.newFilename);
         const data = {
           oriName: file.originalFilename,
           curName: file.newFilename,
@@ -193,8 +195,8 @@ router.post('/handOption', koaBody(), async (ctx) => {
 router.post('/handVideoOption', koaBody(), async (ctx) => {
   try {
     const optionJSON = videoJSON;
-    const videoPath = videoPath;
-    const { optionsValue, mode } = ctx.request.body;
+    const optionPath = videoPath;
+    const { optionsValue, mode, optionIndex } = ctx.request.body;
     let data, msg;
     switch (mode) {
       case 'get':
@@ -207,8 +209,13 @@ router.post('/handVideoOption', koaBody(), async (ctx) => {
         msg = '设置成功';
         break;
       case 'delete':
-        optionJSON.splice(optionsValue, 1);
+        const res = optionJSON.splice(optionIndex, 1);
         await fse.writeJSON(optionPath, optionJSON);
+        const list = res[0].path.split('/');
+        const len = list.length;
+        list.splice(len - 1, 1);
+        const path = assetsPath + list.join('/');
+        await fse.remove(path);
         msg = '删除成功';
         break;
       default:
@@ -220,6 +227,22 @@ router.post('/handVideoOption', koaBody(), async (ctx) => {
       msg,
     };
   } catch (error) {
+    ctx.status = 400;
+    ctx.body = { msg: error.message };
+  }
+});
+
+router.get('/exportData', koaBody(), async (ctx) => {
+  try {
+    await promisify(exec)(`cp ${__dirname}/videoList.json ${assetsPath}/`);
+    await promisify(exec)(
+      `tar -zcvf ${catchPath}/dist.tar.gz -C${assetsPath}/ videolist.html videoList.json m3u8/ assets/`,
+    );
+    const fileBuff = await readFile(`${catchPath}/dist.tar.gz`);
+    ctx.set('Content-Type', 'application/octet-stream');
+    ctx.body = fileBuff;
+  } catch (error) {
+    console.log(error);
     ctx.status = 400;
     ctx.body = { msg: error.message };
   }

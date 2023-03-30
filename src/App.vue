@@ -3,12 +3,19 @@
     <ComperssionOption />
     <div class="container card flex-col gap-y-5 overflow-hidden">
       <section
-        class="card flex flex-row items-center justify-around gap-y-2 bg-base-200 p-2 transition duration-500 hover:shadow-xl hover:duration-200"
+        class="flex flex-row items-center justify-around gap-y-2 bg-base-200 p-2 transition duration-500 hover:shadow-xl hover:duration-200"
       >
         <div>
           <div class="form-control w-full max-w-xs">
-            <label class="label">
+            <label class="label-text label">
               <span class="label-text">请上传mp4文件进行切片</span>
+              <dropList
+                class="label-text-alt"
+                :data="videoList.data"
+                :active-value="curActiveName"
+                @on-click="(e) => (videoList.activeIndex = e)"
+                @on-delete="deleteVideoOption"
+              />
             </label>
             <input
               type="file"
@@ -45,21 +52,25 @@
               <button
                 class="btn"
                 @click="uploadVideo"
-                :disabled="videoFroms.videoName && videoFroms.videoDec ? false : true"
+                :disabled="
+                  uploadLoadding || (videoFroms.videoName && videoFroms.videoDec) ? false : true
+                "
+                :class="{ loading: uploadLoadding }"
               >
                 上传</button
               >
               <button
                 class="btn"
-                @click="exportVideo"
-                :disabled="diffFileInfo.filePath ? false : true"
+                @click="getExportData"
+                :disabled="downloadLoadding"
+                :class="{ loading: downloadLoadding }"
               >
                 导出</button
               >
             </div>
           </div>
         </div>
-        <div>
+        <div class="flex flex-col items-center gap-y-2">
           <div class="form-control">
             <label class="label"> 选择上传的文件（glb,gltf） </label>
             <input
@@ -126,7 +137,8 @@
   import Message from 'vue-m-message';
   import DiffCompressedGltf from './DiffCompressedGltf.vue';
   import ComperssionOption from './ComperssionOption.vue';
-  import { getCompressionOption } from './CompressionOption';
+  import { fetchOption, getCompressionOption } from './CompressionOption';
+  import dropList from './dropList.vue';
 
   const filesRef = ref<File>();
 
@@ -221,24 +233,63 @@
     document.body.removeChild(link);
   };
 
+  const videoList = reactive({
+    activeIndex: 0,
+    data: [],
+    originData: [],
+  });
+
+  const curActiveName = computed(() => videoList.data[videoList.activeIndex]);
+  const deleteVideoOption = async () => {
+    try {
+      const res = await fetchOption(
+        { mode: 'delete', optionIndex: videoList.activeIndex },
+        '/handVideoOption',
+      );
+      const data = await res.json();
+      Message.success(data.msg);
+      await getVideoList();
+    } catch (error) {
+      Message.error(error || JSON.parse(String(error)));
+    }
+  };
+  const getVideoList = async () => {
+    const res = await fetchOption({ mode: 'get' }, '/handVideoOption');
+    const { data } = await res.json();
+    videoList.originData = data;
+    videoList.data = data.map((val: any) => {
+      return val.videoName;
+    });
+    videoList.activeIndex = 0;
+  };
+  getVideoList();
+
   const videoFroms = reactive({
     videoName: '',
     videoDec: '',
   });
   const videoFile = ref<File>();
 
+  const uploadLoadding = ref(false);
   const uploadVideo = async () => {
-    const formData = new FormData();
-    formData.append('videoName', videoFroms.videoName);
-    formData.append('videoDec', videoFroms.videoDec);
-    if (videoFile.value) formData.append('videoFile', videoFile.value);
-    else Message.error('请选择mp4文件');
-    const res = await fetch('/uploadVideo', {
-      method: 'post',
-      body: formData,
-    });
-    const data = await res.json();
-    console.log(data, '--');
+    uploadLoadding.value = true;
+    try {
+      const formData = new FormData();
+      formData.append('videoName', videoFroms.videoName);
+      formData.append('videoDec', videoFroms.videoDec);
+      if (videoFile.value) formData.append('videoFile', videoFile.value);
+      else Message.error('请选择mp4文件');
+      const res = await fetch('/uploadVideo', {
+        method: 'post',
+        body: formData,
+      });
+      const data = await res.json();
+      Message.success(data.msg);
+      await getVideoList();
+    } catch (error) {
+      Message.error(error || JSON.parse(String(error)));
+    }
+    uploadLoadding.value = false;
   };
   const videoFileChange = (e: Event) => {
     const target = e.currentTarget as HTMLInputElement;
@@ -248,6 +299,30 @@
       videoFroms.videoName = '';
     }
   };
-  const exportVideo = () => {};
+
+  const downloadLoadding = ref(false);
+  const getExportData = async () => {
+    downloadLoadding.value = true;
+    try {
+      const res = await fetch('/exportData');
+      if (!res.ok) {
+        throw new Error(res.statusText);
+      }
+      const data = await res.blob();
+      console.log(res, data, '-----');
+      let downloadElement = document.createElement('a');
+      let href = window.URL.createObjectURL(data);
+      downloadElement.href = href;
+      downloadElement.download = 'dist.tar.gz';
+      document.body.appendChild(downloadElement);
+      downloadElement.click();
+      document.body.removeChild(downloadElement);
+      window.URL.revokeObjectURL(href);
+      Message.success('下载成功');
+    } catch (error) {
+      console.log(error);
+      Message.error(error || JSON.parse(String(error)));
+    }
+    downloadLoadding.value = false;
+  };
 </script>
-./CompressionOption

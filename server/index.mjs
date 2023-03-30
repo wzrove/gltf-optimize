@@ -39,7 +39,7 @@ export const compression = async ({
         resourceDirectory: dirname(fullPath) + '/' + baseName,
       };
       const catchName = `${__dirname}/catch/${baseName}/`;
-      const catchFullPath = catchName + '/' + baseName + '.gltf';
+      const catchFullPath = catchName + baseName + '.gltf';
       await fse.mkdirp(catchName);
       if (extName == '.gltf') {
         const gltf = await fse.readJSON(fullPath);
@@ -68,8 +68,12 @@ export const compression = async ({
       const targetFilePath = resultsFiles + '/gltf/' + baseName + '.glb';
       let message;
       if (modeloptionType == 'draco') {
+        console.log(
+          catchFullPath,
+          `${dracoPath} -i ${catchFullPath} -o ${targetFilePath} ${cliOptions.join(' ')}`,
+        );
         message = await promisify(exec)(
-          `${dracoPath} -i ${catchFullPath} -o ${targetFilePath} ${cliOptions.join(' ')} `,
+          `${dracoPath} -i ${catchFullPath} -o ${targetFilePath} ${cliOptions.join(' ')}`,
         );
       } else {
         message = await promisify(exec)(
