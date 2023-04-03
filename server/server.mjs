@@ -123,7 +123,7 @@ router.post(
         await promisify(exec)(
           `ffmpeg -i ${
             catchPath + '/' + file.newFilename
-          } -c:v h264 -flags +cgop -g 30 -hls_time 10 -hls_list_size 0 -hls_segment_filename  ${curPath}/index%3d.ts ${curPath}/index.m3u8`,
+          } -c:v h264 -flags +cgop -g 30 -hls_init_time 1 -hls_time 5 -hls_flags split_by_time -hls_list_size 0 -hls_allow_cache 1 -hls_segment_filename  ${curPath}/index%3d.ts ${curPath}/index.m3u8`,
         );
         await fse.remove(catchPath + '/' + file.newFilename);
         const data = {

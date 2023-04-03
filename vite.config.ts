@@ -24,6 +24,7 @@ export default defineConfig({
         manualChunks: {
           123: ['vue'],
           333: ['three'],
+          444: ['hls.js'],
         },
       },
       input: {
