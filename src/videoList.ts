@@ -69,11 +69,11 @@ const renderList = async () => {
 };
 
 const changeVideoEle = (data: { path: string; videoName: string; videoDec: string }) => {
-  console.log(videCon, '---');
   const nameEle = videCon?.querySelector('.videoName');
   const decEle = videCon?.querySelector('.videoDec');
   const videoEle = videCon?.querySelector('video');
-  console.log(nameEle, decEle);
+  const url = import.meta.env.MODE == 'development' ? window.location.origin : '://video.geosv.com';
+
   if (nameEle) {
     nameEle.innerHTML = data.videoName;
   }
@@ -82,7 +82,7 @@ const changeVideoEle = (data: { path: string; videoName: string; videoDec: strin
   }
 
   if (videoEle) {
-    curhls.loadSource(window.location.origin + data.path);
+    curhls.loadSource(url + data.path);
     curhls.attachMedia(videoEle);
     videoEle.play();
   }
