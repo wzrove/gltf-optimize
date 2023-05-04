@@ -58,7 +58,7 @@ source "$HOME/.cargo/env"
 
 cargo build --release
 
-//产物默认位置在 ./meshoptimizer/gltfpack
+//产物默认位置在 /caesium-clt/target/release/caesiumclt
 //将构建产物移动到 ./server/tools
 ```
 
