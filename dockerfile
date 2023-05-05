@@ -17,10 +17,10 @@ RUN apt-get update && \
 
 #构建相关工具，首先拉代码，然后编译 构建draco
 FROM base AS dracoBuilder
-RUN   git clone -b 1.5.6 --depth 1 https://github.com/google/draco.git  && \
-  cd draco &&  mkdir build_dir && cd build_dir && \
-  git submodule update --init
-RUN cd /draco/build_dir &&  cmake ../ -DDRACO_TRANSCODER_SUPPORTED=ON && make -j $(nproc)
+RUN git clone -b 1.5.6 --depth 1 https://github.com/google/draco.git
+RUN cd draco &&  mkdir build_dir && cd build_dir && \
+  git submodule update --init &&\
+  cmake ../ -DDRACO_TRANSCODER_SUPPORTED=ON && make -j $(nproc)
 
 
 FROM base AS caesiumcltCode

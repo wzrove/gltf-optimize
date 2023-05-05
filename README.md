@@ -94,3 +94,10 @@ pnpm run build
 运行
 pnpm run server
 ```
+
+## 从docker中安装
+
+```bash
+  docker build -t gltf-optimize:v1 .
+  docker run --name gltf-optimize -p 0.0.0.0:3000:3000/tcp  -d gltf-optimize:v1
+```
