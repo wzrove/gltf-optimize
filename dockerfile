@@ -27,7 +27,7 @@ RUN git clone https://github.com/Lymphatus/caesium-clt.git --depth 1
 
 #构建caesium-clt
 FROM rust AS caesiumcltBuilder
-ADD ./config ~/.cargo/
+ADD ./config ~/.cargo/config
 COPY --from=caesiumcltCode /caesium-clt   /caesium-clt/
 RUN cd  /caesium-clt  && cargo build --release
 
