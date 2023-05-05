@@ -4,7 +4,7 @@ ADD ./sources.list /etc/apt/sources.list
 RUN apt-get update && \
   DEBIAN_FRONTEND="noninteractive" \
   apt-get install -y --no-install-recommends  \
-  git \
+  git  wget \
   ca-certificates \
   g++  \
   gcc  \
@@ -12,7 +12,8 @@ RUN apt-get update && \
   gdb && \
   apt-get autoremove -y && \
   apt-get clean -y &&\
-  rm -rf /var/lib/apt/lists/*
+  rm -rf /var/lib/apt/lists/* &&\
+  wget --no-check-certificate https://mirrors.tuna.tsinghua.edu.cn/nodejs-release/v18.9.1/node-v18.9.1-linux-x64.tar.gz  && tar -xzvf  node-v18.9.1-linux-x64.tar.gz
 
 #构建相关工具，首先拉代码，然后编译
 #构建draco
@@ -44,13 +45,7 @@ COPY .  /gltf-optimize/
 COPY --from=dracoBuilder /draco/build_dir/draco_transcoder-1.5.6  /gltf-optimize/server/tools/draco_transcoder
 COPY --from=caesiumcltBuilder /caesium-clt/target/release/caesiumclt  /gltf-optimize/server/tools/caesiumclt
 COPY --from=gltfpack /meshoptimizer/gltfpack  /gltf-optimize/server/tools/gltfpack
-ADD ./sources.list /etc/apt/sources.list
-
-# 安装nodejs环境
-RUN   apt-get update && \
-  DEBIAN_FRONTEND="noninteractive"  && \
-  apt-get install -y --no-install-recommends  wget && \
-  wget --no-check-certificate https://mirrors.tuna.tsinghua.edu.cn/nodejs-release/v18.9.1/node-v18.9.1-linux-x64.tar.gz  && tar -xzvf  node-v18.9.1-linux-x64.tar.gz
+COPY --from=base /node-v18.9.1-linux-x64  /node-v18.9.1-linux-x64
 
 ENV PATH="/node-v18.9.1-linux-x64/bin:${PATH}"
 

@@ -8,6 +8,7 @@ caesium-clt
 *.zip
 log.txt
 *.glb
+*.tar
 
 dist
 videoList.json
