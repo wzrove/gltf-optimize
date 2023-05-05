@@ -15,13 +15,13 @@ RUN apt-get update && \
   rm -rf /var/lib/apt/lists/* &&\
   wget --no-check-certificate https://mirrors.tuna.tsinghua.edu.cn/nodejs-release/v18.9.1/node-v18.9.1-linux-x64.tar.gz  && tar -xzvf  node-v18.9.1-linux-x64.tar.gz
 
-#构建相关工具，首先拉代码，然后编译
-#构建draco
+#构建相关工具，首先拉代码，然后编译 构建draco
 FROM base AS dracoBuilder
 RUN   git clone -b 1.5.6 --depth 1 https://github.com/google/draco.git  && \
   cd draco &&  mkdir build_dir && cd build_dir && \
-  git submodule update --init && \
-  cmake ../ -DDRACO_TRANSCODER_SUPPORTED=ON && make -j $(nproc)
+  git submodule update --init
+RUN cd /draco/build_dir &&  cmake ../ -DDRACO_TRANSCODER_SUPPORTED=ON && make -j $(nproc)
+
 
 FROM base AS caesiumcltCode
 RUN git clone https://github.com/Lymphatus/caesium-clt.git --depth 1
@@ -35,8 +35,8 @@ RUN cd  /caesium-clt  && cargo build --release
 #构建gltf-pack
 FROM base AS gltfpack
 RUN   git clone --depth 1 https://github.com/zeux/meshoptimizer.git  && \
-  cd meshoptimizer && git clone -b gltfpack --depth 1 https://github.com/zeux/basis_universal   && \
-  cmake . -DMESHOPT_BUILD_GLTFPACK=ON -DMESHOPT_BASISU_PATH=basis_universal -DCMAKE_BUILD_TYPE=Release && \
+  cd meshoptimizer && git clone -b gltfpack --depth 1 https://github.com/zeux/basis_universal
+RUN cd /meshoptimizer &&  cmake . -DMESHOPT_BUILD_GLTFPACK=ON -DMESHOPT_BASISU_PATH=basis_universal -DCMAKE_BUILD_TYPE=Release && \
   cmake --build . --target gltfpack --config Release -j $(nproc)
 
 FROM ubuntu:22.04 AS runtime
@@ -52,10 +52,7 @@ ENV PATH="/node-v18.9.1-linux-x64/bin:${PATH}"
 # 构建源码
 RUN cd /gltf-optimize && \
   corepack enable pnpm && \
-  pnpm --registry https://registry.npmmirror.com install && pnpm run build && \
-  apt-get autoremove -y && \
-  apt-get clean -y &&\
-  rm -rf /var/lib/apt/lists/*;
+  pnpm --registry https://registry.npmmirror.com install && pnpm run build
 # 暴露端口
 EXPOSE 3000/tcp
 CMD [ "node", "/gltf-optimize/server/server.mjs"]
