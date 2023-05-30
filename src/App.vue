@@ -5,7 +5,7 @@
       <section
         class="flex flex-row items-center justify-around gap-y-2 bg-base-200 p-2 transition duration-500 hover:shadow-xl hover:duration-200"
       >
-        <div>
+        <!-- <div>
           <div class="form-control w-full max-w-xs">
             <label class="label-text label">
               <span class="label-text">请上传mp4文件进行切片</span>
@@ -69,7 +69,7 @@
               >
             </div>
           </div>
-        </div>
+        </div> -->
         <div class="flex flex-col items-center gap-y-2">
           <div class="form-control">
             <label class="label"> 选择上传的文件（glb,gltf） </label>
