@@ -184,11 +184,53 @@ export const modelOption = reactive<{
         type: 'range',
         max: 16,
       },
+    ],
+
+    //     Vertex positions:
+    //         -vpi: use integer attributes for positions (default)
+    //         -vpn: use normalized attributes for positions
+    //         -vpf: use floating point attributes for positions
+
+    // Vertex attributes:
+    //         -vtf: use floating point attributes for texture coordinates
+    //         -vnf: use floating point attributes for normals
+    'Vertex precision': [
       {
-        target: 'vpn',
-        default: false,
-        description: 'use normalized attributes for positions instead of using integers',
-        translateDes: '使用规范化的属性来表示位置，而不是使用整数',
+        target: '',
+        default: 'vpi',
+        description: [
+          {
+            label: 'use integer attributes for positions (default)',
+            translateLabel: '顶点坐标使用整形',
+            value: 'vpi',
+          },
+          {
+            label: 'use normalized attributes for positions',
+            translateLabel: '顶点坐标标准化',
+            value: 'vpn',
+          },
+          {
+            label: 'use floating point attributes for positions',
+            translateLabel: '顶点坐标使用浮点',
+            value: 'vpf',
+          },
+        ],
+        type: 'radio',
+      },
+    ],
+    'Vertex attributes': [
+      {
+        target: 'vtf',
+        default: true,
+        description: 'use floating point attributes for texture coordinates',
+        translateDes: '浮点型纹理坐标',
+        type: 'switch',
+      },
+      {
+        target: 'vnf',
+        default: true,
+        description: 'use floating point attributes for normals',
+        translateDes: '浮点型法线坐标',
         type: 'switch',
       },
     ],

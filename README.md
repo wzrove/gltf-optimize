@@ -1,4 +1,11 @@
-## 构建安装说明
+## 从 docker 中安装
+
+```bash
+  docker build -t gltf-optimize:v1 .
+  docker run --name gltf-optimize -p 0.0.0.0:3000:3000/tcp  -d gltf-optimize:v1
+```
+
+## 源码安装
 
 - 下载源码
 
@@ -78,9 +85,9 @@ cmake --build . --target gltfpack --config Release
 //将构建产物移动到 ./server/tools
 ```
 
-## 启动
+### 启动
 
-//需要node环境
+//需要 node 环境
 
 corepack enable pnpm
 
@@ -93,11 +100,4 @@ pnpm run build
 
 运行
 pnpm run server
-```
-
-## 从docker中安装
-
-```bash
-  docker build -t gltf-optimize:v1 .
-  docker run --name gltf-optimize -p 0.0.0.0:3000:3000/tcp  -d gltf-optimize:v1
 ```

@@ -68,10 +68,6 @@ export const compression = async ({
       const targetFilePath = resultsFiles + '/gltf/' + baseName + '.glb';
       let message;
       if (modeloptionType == 'draco') {
-        console.log(
-          catchFullPath,
-          `${dracoPath} -i ${catchFullPath} -o ${targetFilePath} ${cliOptions.join(' ')}`,
-        );
         message = await promisify(exec)(
           `${dracoPath} -i ${catchFullPath} -o ${targetFilePath} ${cliOptions.join(' ')}`,
         );
@@ -80,6 +76,10 @@ export const compression = async ({
           `${gltfpackPath} -i ${catchFullPath} -o ${targetFilePath} ${cliOptions.join(' ')} -tj 4`,
         );
       }
+      console.log(
+        catchFullPath,
+        `${targetFilePath} ${cliOptions.join(' ')}`,
+      );
       console.log(message.stdout);
       const size = await (await fse.stat(targetFilePath)).size;
       const endTime = hrtime(startTime);
