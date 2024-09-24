@@ -12,15 +12,19 @@ RUN apt-get update && \
   gdb && \
   apt-get autoremove -y && \
   apt-get clean -y &&\
-  rm -rf /var/lib/apt/lists/* && \
+  rm -rf /var/lib/apt/lists/*
   # wget --no-check-certificate https://mirrors.tuna.tsinghua.edu.cn/nodejs-release/v18.9.1/node-v18.9.1-linux-x64.tar.gz  && tar -xzvf  node-v18.9.1-linux-x64.tar.gz
+
+
+
 
 #构建相关工具，首先拉代码，然后编译 构建draco
 FROM base AS dracoBuilder
-RUN git clone  --depth 1 https://github.com/google/draco.git
+RUN git clone -b 1.5.6 --depth 1 https://github.com/google/draco.git
 RUN cd draco &&  mkdir build_dir && cd build_dir && \
   git submodule update --init &&\
   cmake ../ -DDRACO_TRANSCODER_SUPPORTED=ON && make -j $(nproc)
+
 
 
 FROM base AS caesiumcltCode
@@ -49,7 +53,7 @@ RUN cd /gltf-optimize && \
 
 FROM node:20-slim AS runtime
 COPY --from=nodeBuilder /gltf-optimize/server /gltf-optimize/server
-COPY --from=dracoBuilder /draco/build_dir/draco_transcoder-1.5.6  /gltf-optimize/server/tools/draco_transcoder
+COPY --from=dracoBuilder /draco/build_dir/draco_transcoder-1.5.6 /gltf-optimize/server/tools/draco_transcoder
 COPY --from=caesiumcltBuilder /caesium-clt/target/release/caesiumclt  /gltf-optimize/server/tools/caesiumclt
 COPY --from=gltfpack /meshoptimizer/gltfpack  /gltf-optimize/server/tools/gltfpack
 # COPY --from=base /node-v18.9.1-linux-x64  /node-v18.9.1-linux-x64
